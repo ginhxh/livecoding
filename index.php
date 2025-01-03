@@ -1,38 +1,25 @@
 <?php
-include_once 'config.php';
 include_once 'todo.class.php';
 
-$task =new tasks();
+$task = new TaskManager();
 
-if(isset($_POST['task_submit'])){
-    $task_content = $_POST['task_content']; 
-    $task->setTask_content($task_content);
-    if($task->add()){
-        header("location: index.php?inserted"); 
-    }else{
-        header("location: index.php?failure");
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['task_submit'])) {
+        $task->setTaskContent($_POST['task_content']);
+        $task->createTask();
     }
 
+    if (isset($_POST['delete_btn'])) {
+        $task->setId($_POST['delete_btn']);
+        $task->deleteTask();
+    }
 
+    header("Location: index.php");
+    exit;
 }
 
-if(isset($_POST['delete_btn'])){
-    $taskId = $_POST['delete_btn'];
-    $task->setId($taskId);
-    if($task->remove())
-    {
-        header("Location: index.php?completed"); 
-    }
-    else
-    {
-        header("Location: index.php?notcompleted");
-    }
-}
-
-
-
+$tasks = $task->getAllTasks();
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -44,31 +31,22 @@ if(isset($_POST['delete_btn'])){
 <body class="bg-gray-100 min-h-screen flex justify-center items-center">
   <div class="bg-white shadow-lg rounded-lg w-full max-w-md p-6">
     <h1 class="text-2xl font-bold text-center text-gray-800 mb-4">To-Do List</h1>
-    
-    <!-- Add Task Form -->
-    <form id="taskForm" class="flex mb-4" method="post">
-      <input
-        type="text"
-        name="task_content"
-        id="taskInput"
-        placeholder="Add a new task"
-        class="flex-1 px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-        required
-      />
-      <button
-      name="task_submit"
-        type="submit"
-        class="bg-blue-500 text-white px-4 py-2 rounded-r-md hover:bg-blue-600 transition"
-      >
-        Add
-      </button>
+    <form class="flex mb-4" method="post">
+      <input type="text" name="task_content" placeholder="Add a new task" required
+        class="flex-1 px-4 py-2 border rounded-l-md focus:outline-none" />
+      <button type="submit" name="task_submit"
+        class="bg-blue-500 text-white px-4 py-2 rounded-r-md hover:bg-blue-600 transition">Add</button>
     </form>
-    <?php
-
-    $task->getAllTasks();
-?>
-
-   
-  
+    <ul>
+      <?php foreach ($tasks as $row): ?>
+        <li class="py-4 flex justify-between items-center bg-gray-50 rounded-md shadow mb-2">
+          <p><?= htmlspecialchars($row['task_content']) ?></p>
+          <form method="post" class="ml-4">
+            <!-- <button name="delete_btn" value="<?= $row['id'] ?>" class="bg-red-500 px-3 py-1 text-white">Delete</button> -->
+          </form>
+        </li>
+      <?php endforeach; ?>
+    </ul>
+  </div>
 </body>
 </html>
